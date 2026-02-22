@@ -22,6 +22,10 @@ public class EmailService {
     @Value("${spring.mail.username}")
     private String fromEmail;
 
+    private static final String SHOP_NAME   = "Billions Laptops";
+    private static final String FOOTER_TEXT = "Billions Laptops — Your Trusted Laptop & Accessories Store";
+    private static final String HEADER_BG   = "#0a235a";
+
     // ─────────────────────────────────────────────────────────
     // CHAT NOTIFICATIONS
     // ─────────────────────────────────────────────────────────
@@ -32,34 +36,35 @@ public class EmailService {
      */
     @Async
     public void notifyAdminOfUserMessage(String adminEmail, String adminName,
-                                          String customerName, String productName,
-                                          String messageContent, Long chatRoomId) {
-        String subject = "💬 New message from " + customerName + " about \"" + productName + "\"";
+                                         String customerName, String productName,
+                                         String messageContent, Long chatRoomId) {
+        String subject = "Billions Laptops | 💬 New message from " + customerName + " about \"" + productName + "\"";
 
         String body = """
             <html><body style="font-family: Arial, sans-serif; color: #333;">
               <div style="max-width:600px; margin:auto; border:1px solid #ddd; border-radius:8px; overflow:hidden;">
-                <div style="background:#1a1a2e; padding:20px; color:white;">
+                <div style="background:%s; padding:20px; color:white;">
                   <h2 style="margin:0;">💬 New Customer Message</h2>
+                  <p style="margin:4px 0 0; opacity:0.7; font-size:13px;">%s</p>
                 </div>
                 <div style="padding:24px;">
                   <p>Hi <strong>%s</strong>,</p>
                   <p><strong>%s</strong> sent you a message about <strong>"%s"</strong>:</p>
-                  <div style="background:#f5f5f5; padding:16px; border-left:4px solid #0066cc; border-radius:4px; margin:16px 0;">
+                  <div style="background:#f5f5f5; padding:16px; border-left:4px solid #0a235a; border-radius:4px; margin:16px 0;">
                     <p style="margin:0; font-size:15px;">"%s"</p>
                   </div>
                   <a href="http://localhost:8080/chat/%d"
-                     style="background:#0066cc; color:white; padding:12px 24px; border-radius:6px;
+                     style="background:#0a235a; color:white; padding:12px 24px; border-radius:6px;
                             text-decoration:none; display:inline-block; margin-top:8px;">
                     Reply to Customer
                   </a>
                 </div>
                 <div style="padding:12px 24px; background:#f9f9f9; color:#888; font-size:12px;">
-                  BillionWebsite — Laptop & Accessories Store
+                  %s
                 </div>
               </div>
             </body></html>
-            """.formatted(adminName, customerName, productName, messageContent, chatRoomId);
+            """.formatted(HEADER_BG, SHOP_NAME, adminName, customerName, productName, messageContent, chatRoomId, FOOTER_TEXT);
 
         sendHtmlEmail(adminEmail, subject, body);
     }
@@ -70,15 +75,16 @@ public class EmailService {
      */
     @Async
     public void notifyUserOfAdminReply(String userEmail, String userName,
-                                        String adminName, String productName,
-                                        String messageContent, Long chatRoomId) {
-        String subject = "💬 " + adminName + " replied about \"" + productName + "\"";
+                                       String adminName, String productName,
+                                       String messageContent, Long chatRoomId) {
+        String subject = "Billions Laptops | 💬 " + adminName + " replied about \"" + productName + "\"";
 
         String body = """
             <html><body style="font-family: Arial, sans-serif; color: #333;">
               <div style="max-width:600px; margin:auto; border:1px solid #ddd; border-radius:8px; overflow:hidden;">
-                <div style="background:#1a1a2e; padding:20px; color:white;">
+                <div style="background:%s; padding:20px; color:white;">
                   <h2 style="margin:0;">💬 You have a new reply!</h2>
+                  <p style="margin:4px 0 0; opacity:0.7; font-size:13px;">%s</p>
                 </div>
                 <div style="padding:24px;">
                   <p>Hi <strong>%s</strong>,</p>
@@ -93,11 +99,11 @@ public class EmailService {
                   </a>
                 </div>
                 <div style="padding:12px 24px; background:#f9f9f9; color:#888; font-size:12px;">
-                  BillionWebsite — Laptop & Accessories Store
+                  %s
                 </div>
               </div>
             </body></html>
-            """.formatted(userName, adminName, productName, messageContent, chatRoomId);
+            """.formatted(HEADER_BG, SHOP_NAME, userName, adminName, productName, messageContent, chatRoomId, FOOTER_TEXT);
 
         sendHtmlEmail(userEmail, subject, body);
     }
@@ -112,47 +118,49 @@ public class EmailService {
      */
     @Async
     public void announceNewProductToAllUsers(List<User> allUsers, Product product, String adminShopName) {
-        String subject = "🆕 New arrival: " + product.getName() + " just dropped!";
+        String subject = "Billions Laptops | 🆕 New arrival: " + product.getName() + " just dropped!";
 
         String body = """
             <html><body style="font-family: Arial, sans-serif; color: #333;">
               <div style="max-width:600px; margin:auto; border:1px solid #ddd; border-radius:8px; overflow:hidden;">
-                <div style="background:#1a1a2e; padding:20px; color:white;">
+                <div style="background:%s; padding:20px; color:white;">
                   <h2 style="margin:0;">🆕 New Product Just Added!</h2>
-                  <p style="margin:4px 0 0; opacity:0.8;">From %s</p>
+                  <p style="margin:4px 0 0; opacity:0.7; font-size:13px;">%s</p>
                 </div>
                 %s
                 <div style="padding:24px;">
                   <h2 style="margin:0 0 8px;">%s</h2>
-                  <p style="color:#0066cc; font-size:22px; font-weight:bold; margin:0 0 16px;">$%s</p>
+                  <p style="color:#0a235a; font-size:22px; font-weight:bold; margin:0 0 16px;">₵%s</p>
                   <p style="color:#555; line-height:1.6;">%s</p>
                   <p style="margin:4px 0;"><strong>Category:</strong> %s</p>
                   <p style="margin:4px 0;"><strong>Brand:</strong> %s</p>
                   <p style="margin:4px 0;"><strong>In Stock:</strong> %d units available</p>
                   <a href="http://localhost:8080/products/%d"
-                     style="background:#1a1a2e; color:white; padding:12px 28px; border-radius:6px;
+                     style="background:#0a235a; color:white; padding:12px 28px; border-radius:6px;
                             text-decoration:none; display:inline-block; margin-top:20px; font-size:15px;">
                     View Product
                   </a>
                 </div>
                 <div style="padding:12px 24px; background:#f9f9f9; color:#888; font-size:12px;">
-                  BillionWebsite — Laptop & Accessories Store
+                  %s
                 </div>
               </div>
             </body></html>
             """.formatted(
-                adminShopName,
+                HEADER_BG,
+                SHOP_NAME,
                 product.getPrimaryImageUrl() != null
-                    ? "<img src='" + product.getPrimaryImageUrl() + "' style='width:100%; max-height:300px; object-fit:cover;'/>"
-                    : "",
+                        ? "<img src='" + product.getPrimaryImageUrl() + "' style='width:100%; max-height:300px; object-fit:cover;'/>"
+                        : "",
                 product.getName(),
                 product.getPrice(),
                 product.getDescription() != null ? product.getDescription() : "Check out our latest product!",
                 product.getCategory(),
                 product.getBrand() != null ? product.getBrand() : "N/A",
                 product.getStock(),
-                product.getId()
-            );
+                product.getId(),
+                FOOTER_TEXT
+        );
 
         // Send to each user asynchronously so it doesn't block the product upload
         allUsers.forEach(user -> sendHtmlEmail(user.getEmail(), subject, body));
