@@ -1,0 +1,403 @@
+================================================================================
+API ENDPOINTS DOCUMENTATION
+================================================================================
+
+--------------------------------------------------------------------------------
+1. AUTH CONTROLLER
+Base URL: /api/v1/auth
+--------------------------------------------------------------------------------
+
+POST /api/v1/auth/user/register
+Description: Register a new customer.
+Request Body:
+{
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "john.doe@example.com",
+  "password": "password123",
+  "phone": "1234567890"
+}
+Response:
+{
+  "token": "eyJhbGciOiJIUzI1NiJ9...",
+  "role": "USER",
+  "userId": "uuid-string"
+}
+
+POST /api/v1/auth/user/login
+Description: Login for customers.
+Request Body:
+{
+  "email": "john.doe@example.com",
+  "password": "password123"
+}
+Response:
+{
+  "token": "eyJhbGciOiJIUzI1NiJ9...",
+  "role": "USER",
+  "userId": "uuid-string"
+}
+
+POST /api/v1/auth/admin/register
+Description: Register a new admin/shop owner.
+Request Body:
+{
+  "firstName": "Admin",
+  "lastName": "User",
+  "email": "admin@example.com",
+  "password": "adminpassword",
+  "phone": "0987654321",
+  "shopName": "Best Laptops"
+}
+Response:
+{
+  "token": "eyJhbGciOiJIUzI1NiJ9...",
+  "role": "ADMIN",
+  "userId": "uuid-string"
+}
+
+POST /api/v1/auth/admin/login
+Description: Login for admins.
+Request Body:
+{
+  "email": "admin@example.com",
+  "password": "adminpassword"
+}
+Response:
+{
+  "token": "eyJhbGciOiJIUzI1NiJ9...",
+  "role": "ADMIN",
+  "userId": "uuid-string"
+}
+
+--------------------------------------------------------------------------------
+2. CART CONTROLLER
+Base URL: /api/v1/cart
+Auth Required: USER
+--------------------------------------------------------------------------------
+
+GET /api/v1/cart
+Description: View logged-in user's cart.
+Response:
+{
+  "cartId": 1,
+  "items": [
+    {
+      "cartItemId": 101,
+      "productId": 5,
+      "productName": "Dell XPS 13",
+      "quantity": 1,
+      "price": 1200.00,
+      "subTotal": 1200.00,
+      "image": "url_to_image"
+    }
+  ],
+  "totalAmount": 1200.00
+}
+
+GET /api/v1/cart/count
+Description: Get number of items in cart.
+Response: 1
+
+POST /api/v1/cart
+Description: Add product to cart.
+Request Body:
+{
+  "productId": 5,
+  "quantity": 1
+}
+Response: (Same as GET /cart)
+
+PATCH /api/v1/cart/{cartItemId}?quantity=3
+Description: Update quantity of a cart item.
+Response: (Same as GET /cart)
+
+DELETE /api/v1/cart/{cartItemId}
+Description: Remove item from cart.
+Response: (Same as GET /cart)
+
+DELETE /api/v1/cart
+Description: Clear entire cart.
+Response: "Cart cleared successfully."
+
+--------------------------------------------------------------------------------
+3. CHAT CONTROLLER
+Base URL: /api/v1/chat (User) | /api/v1/admin/chat (Admin)
+--------------------------------------------------------------------------------
+
+POST /api/v1/chat/start
+Description: User starts a chat about a product.
+Request Body:
+{
+  "productId": 5,
+  "initialMessage": "Is this available?"
+}
+Response:
+{
+  "chatRoomId": 202,
+  "productName": "Dell XPS 13",
+  "messages": [...]
+}
+
+GET /api/v1/chat/rooms
+Description: Get all chat rooms for the user.
+Response:
+[
+  {
+    "chatRoomId": 202,
+    "productName": "Dell XPS 13",
+    "lastMessage": "Yes, it is.",
+    "unreadCount": 1
+  }
+]
+
+GET /api/v1/chat/rooms/{chatRoomId}/history
+Description: Get message history for a chat room.
+Response:
+[
+  {
+    "messageId": 1,
+    "senderId": "user-uuid",
+    "content": "Is this available?",
+    "timestamp": "2023-10-27T10:00:00"
+  }
+]
+
+POST /api/v1/chat/rooms/{chatRoomId}/send
+Description: User sends a message.
+Request Body:
+{
+  "content": "Great, thanks!"
+}
+Response:
+{
+  "messageId": 2,
+  "senderId": "user-uuid",
+  "content": "Great, thanks!",
+  "timestamp": "..."
+}
+
+GET /api/v1/admin/chat/rooms
+Description: Get all chat rooms for the admin.
+Response: (List of ChatRoomResponse)
+
+POST /api/v1/admin/chat/rooms/{chatRoomId}/reply
+Description: Admin replies to a chat.
+Request Body:
+{
+  "content": "Yes, it is available."
+}
+Response: (ChatMessageResponse)
+
+--------------------------------------------------------------------------------
+4. USER CONTROLLER
+Base URL: /api/v1/user (User) | /api/v1/admin/users (Admin)
+--------------------------------------------------------------------------------
+
+GET /api/v1/user/profile
+Description: Get current user profile.
+Response:
+{
+  "id": "uuid",
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "john.doe@example.com",
+  "phone": "1234567890",
+  "role": "USER"
+}
+
+PUT /api/v1/user/profile
+Description: Update user profile.
+Request Body:
+{
+  "firstName": "Johnny",
+  "lastName": "Doe",
+  "phone": "1112223333"
+}
+Response: (Updated UserResponse)
+
+GET /api/v1/admin/users
+Description: Get all users (Admin only).
+Response:
+{
+  "totalUsers": 100,
+  "users": [ ... ]
+}
+
+GET /api/v1/admin/users/{userId}
+Description: Get user by ID.
+
+GET /api/v1/admin/users/search/email?q=john
+Description: Search users by email.
+
+GET /api/v1/admin/users/search/name?q=john
+Description: Search users by name.
+
+DELETE /api/v1/admin/users/{userId}
+Description: Delete a user.
+
+--------------------------------------------------------------------------------
+5. ORDER CONTROLLER
+Base URL: /api/v1/orders
+Auth Required: USER (for placing/viewing own), ADMIN (for managing)
+--------------------------------------------------------------------------------
+
+POST /api/v1/orders
+Description: Place an order from cart.
+Request Body:
+{
+  "deliveryAddress": "123 Main St, City, Country",
+  "phoneNumber": "1234567890"
+}
+Response:
+{
+  "orderId": 505,
+  "status": "PENDING",
+  "totalAmount": 1200.00,
+  "items": [...],
+  "orderDate": "..."
+}
+
+GET /api/v1/orders
+Description: Get logged-in user's orders.
+Response: (List of OrderResponse)
+
+GET /api/v1/orders/{orderId}
+Description: Get specific order details.
+
+--------------------------------------------------------------------------------
+6. ADMIN ORDER CONTROLLER
+Base URL: /api/v1/admin/orders
+Auth Required: ADMIN
+--------------------------------------------------------------------------------
+
+PATCH /api/v1/admin/orders/{orderId}/status?status=SHIPPED
+Description: Update order status.
+Values: PENDING, CONFIRMED, SHIPPED, DELIVERED, CANCELLED
+
+PATCH /api/v1/admin/orders/{orderId}/cancel
+Description: Cancel an order.
+
+GET /api/v1/admin/orders
+Description: Get all orders.
+
+GET /api/v1/admin/orders/{orderId}
+Description: Get order by ID.
+
+GET /api/v1/admin/orders/recent?limit=10
+Description: Get recent orders.
+
+GET /api/v1/admin/orders/highest-value?limit=10
+Description: Get highest value orders.
+
+GET /api/v1/admin/orders/status/{status}
+Description: Filter orders by status.
+
+GET /api/v1/admin/orders/date/today
+GET /api/v1/admin/orders/date/week
+GET /api/v1/admin/orders/date/month
+GET /api/v1/admin/orders/date/range?from=...&to=...
+
+GET /api/v1/admin/orders/user/{userId}
+Description: Get orders for a specific user.
+
+GET /api/v1/admin/orders/summary
+Description: Dashboard stats.
+Response:
+{
+  "totalOrders": 150,
+  "totalRevenue": 50000.00,
+  "statusCounts": { "PENDING": 5, "DELIVERED": 140 }
+}
+
+GET /api/v1/admin/orders/analytics/daily
+Description: Daily order counts for last 7 days.
+
+--------------------------------------------------------------------------------
+7. USER PRODUCT CONTROLLER
+Base URL: /api/v1/products
+Auth Required: None (Public)
+--------------------------------------------------------------------------------
+
+GET /api/v1/products
+Description: Get all products.
+Response:
+[
+  {
+    "id": 1,
+    "name": "Dell XPS 13",
+    "price": 1200.00,
+    "category": "Laptop",
+    "brand": "Dell",
+    "stock": 10,
+    "imageUrl": "..."
+  }
+]
+
+GET /api/v1/products/{productId}
+Description: Get product details.
+
+GET /api/v1/products/in-stock
+Description: Get products with stock > 0.
+
+GET /api/v1/products/categories
+Description: Get list of categories.
+
+GET /api/v1/products/brands
+Description: Get list of brands.
+
+GET /api/v1/products/category/{category}
+Description: Filter by category.
+
+GET /api/v1/products/brand/{brand}
+Description: Filter by brand.
+
+GET /api/v1/products/price-range?min=100&max=500
+Description: Filter by price range.
+
+GET /api/v1/products/filter?category=laptop&min=500&max=2000
+Description: Filter by category and price.
+
+GET /api/v1/products/search?name=dell
+Description: Search by name.
+
+GET /api/v1/products/search/keyword?q=gaming
+Description: Search by keyword.
+
+--------------------------------------------------------------------------------
+8. ADMIN PRODUCT CONTROLLER
+Base URL: /api/v1/admin/products
+Auth Required: ADMIN
+--------------------------------------------------------------------------------
+
+POST /api/v1/admin/products
+Description: Add a new product.
+Content-Type: multipart/form-data
+Form Fields:
+- name: "MacBook Pro"
+- price: "2000.00"
+- category: "Laptop"
+- description: "M1 Chip..."
+- brand: "Apple"
+- stock: "50"
+- image: (File)
+
+PUT /api/v1/admin/products/{productId}
+Description: Update product.
+Content-Type: multipart/form-data
+Form Fields: (Same as POST, all optional except required ones)
+
+PATCH /api/v1/admin/products/{productId}/stock?quantity=50
+Description: Update stock only.
+
+DELETE /api/v1/admin/products/{productId}
+Description: Delete product.
+
+GET /api/v1/admin/products
+Description: Get all products (Admin view).
+
+GET /api/v1/admin/products/mine
+Description: Get products added by this admin.
+
+GET /api/v1/admin/products/search?name=...
+GET /api/v1/admin/products/search/keyword?q=...
