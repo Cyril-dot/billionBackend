@@ -29,7 +29,9 @@ public class CorsConfig {
                 "https://novaspace-teal.vercel.app",
                 "https://novaspace-3xjlmad36-cyril-dots-projects.vercel.app",
                 "https://billion-laptops.vercel.app",
-                "https://billion-laptops-admin.vercel.app"
+                "https://billion-laptops-admin.vercel.app",
+                "https://billion-laptops-admin-366n8r9uk-cyril-dots-projects.vercel.app",
+                "https://billion-laptops-admin-git-master-cyril-dots-projects.vercel.app"
         ));
 
         config.setAllowedMethods(List.of(
